@@ -5,6 +5,14 @@ and exposes a public API for socket-based, multi-node RPC
 
 I'm still working on this project; check back in a few days!
 
+## Serialization Format
+
+The `lib.rpc` serialization format is a binary representation of the original struct data. The data is buffered into a stream; each unique object is delimited by a cursor (pointer to the memory offset). All `NULL` data is supplanted with a sentinel identifier (`0xFFFFFFFF`); this format does not support back-pointers, currently (e.g. no graphs or circular linked lists - fixing this in an upcoming release but by all means open a PR if you beat me to it).
+
+To serialize any object, simply write a function which calls `rpc_serialize_data` on each member of the given structure; for nested structures, you may recurse and reference its serialization method.
+
+Finally, initialize a buffer (`serialbuf_t**`) with `rpc_serialbuf_init` and serialize your data thereon.
+
 ## Dynamic Linking
 
 Linking to `lib.rpc`:
