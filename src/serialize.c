@@ -55,6 +55,7 @@ int rpc_serialize_data(serialbuf_t* sb, char* data, int size) {
 
 	// TODO use alternative
 	memcpy((char*)buffer->buffer + buffer->cursor, data, size);
+
 	buffer->cursor += size;
 
 	return 1;
@@ -72,9 +73,10 @@ static int num = 0;
 int rpc_deserialize_data(serialbuf_t* sb, char* dest, int size) {
 	if (!sb || !sb->buffer) return 0;
 	if (!size) return 0;
-	// if ((sb->capacity - sb->cursor) < size) return 0;
+	if ((sb->capacity - sb->cursor) < size) return 0;
 
 	memcpy(dest, sb->buffer + sb->cursor, size);
+
 	sb->cursor += size;
 
 	return 1;

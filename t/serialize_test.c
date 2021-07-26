@@ -42,13 +42,13 @@ void serialize_record(record_t* obj, serialbuf_t* sb) {
 	// if data is NULL, surrogate it with the sentinel value
 	RPC_SENTINEL_INSERTION_ROUTINE(obj, sb);
 
-	if (!rpc_serialize_data(sb, (char*)obj->name, sizeof(char))) {
-		panic("serialization error");
-	}
-	if (!rpc_serialize_data(sb, (char*)&obj->year, sizeof(int))) {
+	if (!rpc_serialize_data(sb, (char*)obj->name, 32)) {
 		panic("serialization error");
 	}
 
+	if (!rpc_serialize_data(sb, (char*)&obj->year, sizeof(int))) {
+		panic("serialization error");
+	}
 	serialize_musician(obj->musician, sb);
 }
 
@@ -94,15 +94,15 @@ void serialize_musician(musician_t* obj, serialbuf_t* sb) {
 
 	serialize_record(&obj->record, sb);
 
-	// for (iteration = 0; iteration < 3; iteration++) {
-	// 	serialize_record(&obj->top_records[iteration], sb);
-	// }
+	for (iteration = 0; iteration < 3; iteration++) {
+		serialize_record(&obj->top_records[iteration], sb);
+	}
 
-	// serialize_musician(obj->bandmate, sb);
+	serialize_musician(obj->bandmate, sb);
 
-	// for (iteration = 0; iteration < 3; iteration++) {
-	// 	serialize_musician(obj->bandmates[iteration], sb);
-	// }
+	for (iteration = 0; iteration < 3; iteration++) {
+		serialize_musician(obj->bandmates[iteration], sb);
+	}
 }
 
 record_t* deserialize_record(serialbuf_t* sb) {
@@ -118,7 +118,7 @@ record_t* deserialize_record(serialbuf_t* sb) {
 		panic("deserialization error");
 	}
 
-	// obj->musician = deserialize_musician(sb);
+	obj->musician = deserialize_musician(sb);
 
 	return obj;
 }
@@ -184,27 +184,51 @@ musician_t* deserialize_musician(serialbuf_t* sb) {
 	obj->record = *record; // shallow copy
 	free(record);
 
-	// for (iteration = 0; iteration < 3; iteration++) {
-	// 	record = deserialize_record(sb);
+	for (iteration = 0; iteration < 3; iteration++) {
+		record = deserialize_record(sb);
 
-	// 	obj->top_records[iteration] = *record;
-	// 	puts("ERE");
+		obj->top_records[iteration] = *record;
 
-	// 	free(record);
-	// }
+		free(record);
+	}
 
-	// obj->bandmate = deserialize_musician(sb);
+	obj->bandmate = deserialize_musician(sb);
 
-	// for (iteration = 0; iteration < 3; iteration++) {
-	// 	obj->bandmates[iteration] = deserialize_musician(sb);
-	// }
+	for (iteration = 0; iteration < 3; iteration++) {
+		obj->bandmates[iteration] = deserialize_musician(sb);
+	}
 
 	return obj;
 }
 
+void print_musician(musician_t* m1) {
+	int iteration = 0;
+	for (; iteration < 3; iteration++) {
+		printf("m1.releases[iteration] %d\n", m1->releases[iteration]);
+	}
+
+	printf("m1->age %d\n", m1->age);
+	printf("*m1->height %d\n", *m1->height);
+
+	for (iteration = 0; iteration < 3; iteration++) {
+		printf("*m1->net_worth_qua_year[iteration]");
+		if (m1->net_worth_qua_year[iteration]) {
+			printf(" %d\n", *m1->net_worth_qua_year[iteration]);
+		} else printf(" null\n");
+	}
+
+	printf("m1->record %s %d\n", m1->record.name, m1->record.year);
+	for (iteration = 0; iteration < 3; iteration++) {
+		printf("m1->top_records[iteration] year");
+		if (strlen(m1->top_records[iteration].name)) {
+			printf(" %s\n", m1->top_records[iteration].name);
+		} else printf(" null\n");
+	}
+}
+
 /* Runner */
 int main(int argc, char* argv[]) {
-	puts("initializing data...");
+	puts("\ninitializing data...\n");
 
 	musician_t m1;
 	memset(&m1, 0, sizeof(musician_t));
@@ -229,37 +253,16 @@ int main(int argc, char* argv[]) {
 
 	m1.record.musician = NULL;
 
-	puts("serializing data...");
+	puts("\nserializing data...\n");
 
 	serialbuf_t* sb;
 	rpc_serialbuf_init(&sb, -1);
 
+	// print OG object
+	print_musician(&m1);
+
 	// we recurse the object and serialize it into a flattened data structure
 	serialize_musician(&m1, sb);
-
-	// print serialized object
-	int iteration = 0;
-	for (; iteration < 3; iteration++) {
-		printf("m1.releases[iteration] %d\n", m1.releases[iteration]);
-	}
-
-	printf("m1.age %d\n", m1.age);
-	printf("*m1.height %d\n", *m1.height);
-
-	for (iteration = 0; iteration < 3; iteration++) {
-		printf("*m1.net_worth_qua_year[iteration]");
-		if (m1.net_worth_qua_year[iteration]) {
-			printf(" %d\n", *m1.net_worth_qua_year[iteration]);
-		} else printf(" null\n");
-	}
-
-	printf("m1.record %s %d\n", m1.record.name, m1.record.year);
-	// for (iteration = 0; iteration < 3; iteration++) {
-	// 	printf("m1.top_records[iteration] year");
-	// 	if (strlen(m1.top_records[iteration].name)) {
-	// 		printf(" %s\n", m1.top_records[iteration].name);
-	// 	} else printf(" null\n");
-	// }
 
 	// this is where we would send the serialized data over the wire...
 	// but we're only testing serialization here
@@ -267,42 +270,15 @@ int main(int argc, char* argv[]) {
 	// reset the buffer so we can read from start
 	rpc_serialbuf_reset(sb);
 
+	puts("\ndeserializing data...\n");
+
 	musician_t* result = deserialize_musician(sb);
 
 	rpc_serialbuf_free(sb);
 	sb = NULL;
 
-	for (; iteration < 3; iteration++) {
-		printf("result->releases[iteration] %d\n", result->releases[iteration]);
-	}
+	print_musician(result);
 
-	printf("result->age %d\n", result->age);
-	printf("*result->height %d\n", *result->height);
-
-	for (iteration = 0; iteration < 3; iteration++) {
-		printf("*result->net_worth_qua_year[iteration]");
-		if (result->net_worth_qua_year[iteration]) {
-			printf(" %d\n", *result->net_worth_qua_year[iteration]);
-		} else printf(" null\n");
-	}
-
-	printf("result->record %s %d\n", result->record.name, result->record.year);
-
-	/*
-		Zito, we left off here. Recall that we were having some deserialization issues with nested structures.
-		Also recall - do not invest too much time here as we will be reimplementing this anyway; it just needs to work
-		so we can proceed to the next step: a more generic interface for consumers.
-
-		Fix the remaining members of the primary struct, then proceed to implementing the RPC socket API.
-		Cheers n' big ears - Z
-	*/
-
-	// for (iteration = 0; iteration < 3; iteration++) {
-	// 	printf("result->top_records[iteration] year");
-	// 	if (strlen(result->top_records[iteration].name)) {
-	// 		printf(" %s\n", result->top_records[iteration].name);
-	// 	} else printf(" null\n");
-	// }
 
 	// VERIFY the two are *exactly* the same
 	return EXIT_SUCCESS;
