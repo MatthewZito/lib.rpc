@@ -3,8 +3,6 @@
 `lib.rpc` is a C library that describes a data exchange format for Remote Procedure Calls,
 and exposes a public API for socket-based, multi-node RPC
 
-I'm still working on this project; check back in a few days!
-
 ## Serialization Format
 
 The `lib.rpc` serialization format is a binary representation of the original struct data. The data is buffered into a stream; each unique object is delimited by a cursor (pointer to the memory offset). All `NULL` data is supplanted with a sentinel identifier (`0xFFFFFFFF`); this format does not support back-pointers, currently (e.g. no graphs or circular linked lists - fixing this in an upcoming release but by all means open a PR if you beat me to it).
@@ -67,3 +65,4 @@ gcc -o main.exe main.o -L /path/to/lib.rpc -llib_rpc.dll
 ## Current Limitations
 
 - cannot serialize/deserialize objects with back-pointers (e.g. circular linked lists, graphs, et al)
+- does not support TLVs or byte endianness
