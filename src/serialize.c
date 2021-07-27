@@ -1,3 +1,13 @@
+/**
+ * @file serialize.c
+ * @author Matthew Zito (goldmund@freenode)
+ * @brief Implements a serialization format, generally in the interest of RPC support
+ * @version 0.1
+ * @date 2021-07-26
+ *
+ * @copyright Copyright (c) 2021 Matthew Zito (goldmund)
+ *
+ */
 #include "librpc.h"
 
 #include <stdlib.h>

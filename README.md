@@ -13,6 +13,21 @@ To serialize any object, simply write a function which calls `rpc_serialize_data
 
 Finally, initialize a buffer (`serialbuf_t**`) with `rpc_serialbuf_init` and serialize your data thereon.
 
+## Remote Procedure Calls
+
+Given the serialization format, basic RPC is trivial. See the [examples dir](./examples/rpc/) for an implementation of RPC via UDP sockets.
+
+To run the program:
+
+```shell
+# you may need to do this
+export LD_LIBRARY_PATH=path/to/shared/object
+# compile & srv listen
+make clean && make && ./server
+# in another shell
+./client
+```
+
 ## Dynamic Linking
 
 Linking to `lib.rpc`:
@@ -41,7 +56,8 @@ gcc -o main.exe main.o -L /path/to/lib.rpc -llib_rpc.dll
 # you may need to add the lib location to your PATH
 ```
 
+**Note** You may need to add the shared object location by exporting the `LD_LIBRARY_PATH` variable
+
 ## Current Limitations
 
 - cannot serialize/deserialize objects with back-pointers (e.g. circular linked lists, graphs, et al)
-- the first member of a struct cannot be NULL

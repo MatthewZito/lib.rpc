@@ -1,8 +1,9 @@
 #include "librpc.h"
 
+#include <assert.h>
+#include <memory.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <memory.h>
 #include <string.h>
 
 /* Test Utilities */
@@ -279,7 +280,17 @@ int main(int argc, char* argv[]) {
 
 	print_musician(result);
 
+	assert(m1.age == result->age);
 
-	// VERIFY the two are *exactly* the same
+	int iteration = 0;
+	for (; iteration < 3; iteration++) {
+		assert(m1.releases[iteration] == result->releases[iteration]);
+	}
+
+	assert(m1.age == result->age);
+	printf(m1.height == result->height);
+
+	assert(m1.record.year == result->record.year);
+
 	return EXIT_SUCCESS;
 }

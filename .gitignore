@@ -1,5 +1,6 @@
 *.so
 *.o
-rpc
 main
 .vscode
+client
+server
