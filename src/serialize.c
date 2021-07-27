@@ -199,3 +199,26 @@ void rpc_serialbuf_free(serialbuf_t* sb) {
 	free(sb->buffer);
 	free(sb);
 }
+
+/**
+ * @brief Copy data into the buffer at the given offset
+ *
+ * @param sb
+ * @param size
+ * @param value
+ * @param offset
+ * @return int
+ */
+int rpc_copy_at_offset(
+	serialbuf_t* sb,
+	int size,
+	char* data,
+	int offset
+) {
+	if (offset > sb->capacity){
+		return 0;
+	}
+
+	memcpy(sb->buffer + offset, data, size);
+	return 1;
+}

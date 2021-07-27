@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
 		// prepare buffer for reply to be sent to the client
 		rpc_serialbuf_reset(sendbuf);
 
-		marshal_srv(unmarshal_srv(recvbuf), sendbuf);
+		process_message(recvbuf, sendbuf);
 
 		len = sendto(
 			stream,
@@ -103,17 +103,37 @@ void marshal_srv(int res, serialbuf_t* sb) {
 	rpc_serialize_data(sb, (char*)&res, sizeof(int));
 }
 
-int unmarshal_srv(serialbuf_t* sb) {
-	int x, y;
+void process_message(serialbuf_t* recvbuf, serialbuf_t* sendbuf) {
+	rpc_header_t header;
 
-	rpc_deserialize_data(sb, (char*)&x, sizeof(int));
-	rpc_deserialize_data(sb, (char*)&y, sizeof(int));
+	// header: optional but recommended
+	rpc_deserialize_data(recvbuf, (char*)&header.id, sizeof(header.id));
+	rpc_deserialize_data(recvbuf, (char*)&header.payload_size, sizeof(header.payload_size));
 
-	return multiply(x, y);
-}
+	int x, y, res;
+	rpc_deserialize_data(recvbuf, (char*)&x, sizeof(int));
+	rpc_deserialize_data(recvbuf, (char*)&y, sizeof(int));
 
-// this is the actual resource function
-// that we target with the RPC
-int multiply(int x, int y) {
-	return x * y;
+	switch (header.id) {
+		case RPC_MULTIPLY:
+			res = x * y;
+			break;
+		case RPC_DIVIDE:
+			{
+				puts("HERE");
+				if (y == 0) res = -1;
+				else res = x / y;
+			}
+			break;
+		case RPC_ADD:
+			res = x + y;
+			break;
+		case RPC_SUBTRACT:
+			res = x - y;
+			break;
+		default:
+			res = -1;
+	}
+
+	marshal_srv(res, sendbuf);
 }

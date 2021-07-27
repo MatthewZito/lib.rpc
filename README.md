@@ -28,6 +28,12 @@ make clean && make && ./server
 ./client
 ```
 
+That is, to implement RPC, one need only write stub functions that serialize and deserialize the data, and the actual remote procedure, of course.
+
+The transport mechanism (e.g. sockets) is negligible here.
+
+Additionally, you may wish to include a header as demonstrated in the aforementioned example. The header should describe the RPC signature and include an identifier that can be interpreted by the RPC server as an available remote procedure (here, this is implemented as an enumeration).
+
 ## Dynamic Linking
 
 Linking to `lib.rpc`:

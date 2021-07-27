@@ -38,6 +38,12 @@ void rpc_serialbuf_init(serialbuf_t** sb, int size);
 /* serializers */
 int rpc_serialize_data(serialbuf_t* sb, char* data, int size);
 int rpc_deserialize_data(serialbuf_t* sb, char* dest, int size);
+int rpc_copy_at_offset(
+	serialbuf_t* sb,
+	int size,
+	char* data,
+	int offset
+);
 
 /* getters */
 int rpc_get_serialbuf_size(serialbuf_t* sb);
